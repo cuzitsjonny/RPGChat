@@ -16,9 +16,10 @@ public class AsyncPlayerChatListener implements Listener {
 
 	@EventHandler
 	public void onAsyncPlayerChat(AsyncPlayerChatEvent e) {
-		e.setCancelled(true);
+		int range = plugin.getPluginConfig().getSection("Local").getAsInt("normal_range_in_blocks", 10);
 
-		plugin.broadcastLocalMessage(e.getPlayer(), e.getMessage());
+		e.setCancelled(true);
+		plugin.broadcastLocalMessage(e.getPlayer(), e.getMessage(), range);
 	}
 
 }

@@ -11,15 +11,20 @@ import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.github.cuzitsjonny.rpgchat.config.IniConfig;
 import com.github.cuzitsjonny.rpgchat.config.IniSection;
+import com.github.cuzitsjonny.rpgchat.integration.RoleCraftReflection;
 import com.github.cuzitsjonny.rpgchat.listeners.AsyncPlayerChatListener;
 
 public class RPGChatPlugin extends JavaPlugin {
 
 	private IniConfig pluginConfig;
+	private boolean isRoleCraftIntegrationEnabled;
 
 	@Override
 	public void onEnable() {
@@ -54,8 +59,25 @@ public class RPGChatPlugin extends JavaPlugin {
 			Bukkit.getPluginManager().disablePlugin(this);
 		}
 
+		isRoleCraftIntegrationEnabled = false;
+
 		if (isEnabled()) {
-			Bukkit.getPluginManager().registerEvents(new AsyncPlayerChatListener(this), this);
+			PluginManager pm = Bukkit.getPluginManager();
+			IniSection roleCraftSection = pluginConfig.getSection("Rolecraft");
+			boolean enableRoleCraftIntegration = roleCraftSection.getAsBoolean("enable_integration", true);
+
+			if (enableRoleCraftIntegration) {
+				if (pm.isPluginEnabled("Rolecraft")) {
+					Plugin roleCraft = pm.getPlugin("Rolecraft");
+
+					AsyncPlayerChatEvent.getHandlerList().unregister(roleCraft);
+					getLogger().info("Successfully hooked into Rolecraft.");
+
+					isRoleCraftIntegrationEnabled = true;
+				}
+			}
+
+			pm.registerEvents(new AsyncPlayerChatListener(this), this);
 		}
 	}
 
@@ -105,19 +127,30 @@ public class RPGChatPlugin extends JavaPlugin {
 		return pluginConfig;
 	}
 
-	public void broadcastLocalMessage(Player sender, String message) {
+	public boolean isRoleCraftIntegrationEnabled() {
+		return isRoleCraftIntegrationEnabled;
+	}
+
+	public void broadcastLocalMessage(Player sender, String message, int range) {
 		Location senderLoc = sender.getLocation();
 		IniSection localSection = pluginConfig.getSection("Local");
 		String format = localSection.getAsString("message_format", "&4A problem occured. Check your RPGChat config.");
 		String prefix = localSection.getAsString("prefix", "&4A problem occured. Check your RPGChat config.");
 		boolean autoPeriod = localSection.getAsBoolean("auto_period", true);
-		int range = localSection.getAsInt("range_in_blocks", 10);
 
 		String actualMessage = ChatColor.translateAlternateColorCodes('&', format);
 
 		actualMessage = actualMessage.replace("%prefix%", ChatColor.translateAlternateColorCodes('&', prefix));
 		actualMessage = actualMessage.replace("%player%", sender.getName());
 		actualMessage = actualMessage.replace("%equals%", "=");
+		actualMessage = actualMessage.replace("%level%", String.valueOf(sender.getLevel()));
+
+		if (isRoleCraftIntegrationEnabled) {
+			Object roleCraftPlayer = RoleCraftReflection.getRoleCraftPlayer(sender.getUniqueId());
+			String type = RoleCraftReflection.getRoleCraftPlayerType(roleCraftPlayer);
+
+			actualMessage = actualMessage.replace("%class%", type);
+		}
 
 		if (autoPeriod) {
 			if (!(message.endsWith(".") || message.endsWith("!") || message.endsWith("?"))) {
@@ -162,6 +195,14 @@ public class RPGChatPlugin extends JavaPlugin {
 		actualMessage = actualMessage.replace("%prefix%", ChatColor.translateAlternateColorCodes('&', prefix));
 		actualMessage = actualMessage.replace("%player%", sender.getName());
 		actualMessage = actualMessage.replace("%equals%", "=");
+		actualMessage = actualMessage.replace("%level%", String.valueOf(sender.getLevel()));
+
+		if (isRoleCraftIntegrationEnabled) {
+			Object roleCraftPlayer = RoleCraftReflection.getRoleCraftPlayer(sender.getUniqueId());
+			String type = RoleCraftReflection.getRoleCraftPlayerType(roleCraftPlayer);
+
+			actualMessage = actualMessage.replace("%class%", type);
+		}
 
 		if (autoPeriod) {
 			if (!(message.endsWith(".") || message.endsWith("!") || message.endsWith("?"))) {

@@ -1,6 +1,7 @@
 name: RPGChat
 version: 1.0
 author: cuzitsjonny
+softdepend: [Rolecraft]
 
 main: com.github.cuzitsjonny.rpgchat.RPGChatPlugin
 
