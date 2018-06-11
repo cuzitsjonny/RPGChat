@@ -1,0 +1,21 @@
+name: RPGChat
+version: 1.0
+author: cuzitsjonny
+
+main: com.github.cuzitsjonny.rpgchat.RPGChatPlugin
+
+commands:
+    reloadrpgchat:
+        description: Reloads config entries of RPGChat.
+        permission: rpgchat.reload
+    ooc:
+        description: Makes your chat message global.
+        permission: rpgchat.ooc
+
+permissions:
+    rpgchat.reload:
+        default: op
+    rpgchat.ooc:
+        default: true
+    rpgchat.color:
+        default: op
