@@ -5,6 +5,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 import com.github.cuzitsjonny.rpgchat.RPGChatPlugin;
+import com.github.cuzitsjonny.rpgchat.config.IniSection;
 
 public class AsyncPlayerChatListener implements Listener {
 
@@ -16,7 +17,8 @@ public class AsyncPlayerChatListener implements Listener {
 
 	@EventHandler
 	public void onAsyncPlayerChat(AsyncPlayerChatEvent e) {
-		int range = plugin.getPluginConfig().getSection("Local").getAsInt("normal_range_in_blocks", 10);
+		IniSection localSection = plugin.getPluginConfig().getSection("Local");
+		int range = localSection.getAsInt("normal_range_in_blocks", 10);
 
 		e.setCancelled(true);
 		plugin.broadcastLocalMessage(e.getPlayer(), e.getMessage(), range);

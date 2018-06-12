@@ -10,8 +10,14 @@ commands:
         description: Reloads config entries of RPGChat.
         permission: rpgchat.reload
     ooc:
-        description: Makes your chat message global.
+        description: Sends a global chat message.
         permission: rpgchat.ooc
+    whisper:
+        description: Sends a local chat message with decreased range.
+        permission: rpgchat.whisper
+    yell:
+        description: Sends a local chat message with increased range.
+        permission: rpgchat.yell
 
 permissions:
     rpgchat.reload:
@@ -20,3 +26,7 @@ permissions:
         default: true
     rpgchat.color:
         default: op
+    rpgchat.whisper:
+        default: true
+    rpgchat.yell:
+        default: true
