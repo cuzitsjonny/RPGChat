@@ -4,5 +4,6 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="var" path="spigot_latest"/>
 	<classpathentry kind="var" path="rolecraft_latest"/>
+	<classpathentry kind="var" path="vault_integration"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

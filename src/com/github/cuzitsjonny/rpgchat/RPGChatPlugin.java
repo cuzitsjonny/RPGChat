@@ -19,12 +19,14 @@ import org.bukkit.plugin.java.JavaPlugin;
 import com.github.cuzitsjonny.rpgchat.config.IniConfig;
 import com.github.cuzitsjonny.rpgchat.config.IniSection;
 import com.github.cuzitsjonny.rpgchat.integration.RolecraftIntegration;
+import com.github.cuzitsjonny.rpgchat.integration.VaultIntegration;
 import com.github.cuzitsjonny.rpgchat.listeners.AsyncPlayerChatListener;
 
 public class RPGChatPlugin extends JavaPlugin {
 
 	private IniConfig pluginConfig;
 	private boolean isRolecraftIntegrationEnabled;
+	private boolean isVaultIntegrationEnabled;
 
 	@Override
 	public void onEnable() {
@@ -60,12 +62,16 @@ public class RPGChatPlugin extends JavaPlugin {
 		}
 
 		isRolecraftIntegrationEnabled = false;
+		isVaultIntegrationEnabled = false;
 
 		if (isEnabled()) {
 			PluginManager pm = Bukkit.getPluginManager();
 
 			IniSection rolecraftSection = pluginConfig.getSection("Rolecraft");
 			boolean enableRolecraftIntegration = rolecraftSection.getAsBoolean("enable_integration", true);
+
+			IniSection vaultSection = pluginConfig.getSection("Vault");
+			boolean enableVaultIntegration = vaultSection.getAsBoolean("enable_integration", true);
 
 			if (enableRolecraftIntegration) {
 				if (pm.isPluginEnabled("Rolecraft")) {
@@ -78,6 +84,15 @@ public class RPGChatPlugin extends JavaPlugin {
 				} else {
 					getLogger().warning("Rolecraft integration has been enabled in the config,"
 							+ " but this server does not seem to be running Rolecraft.");
+				}
+			}
+
+			if (enableVaultIntegration) {
+				if (pm.isPluginEnabled("Vault")) {
+					isVaultIntegrationEnabled = true;
+				} else {
+					getLogger().warning("Vault integration has been enabled in the config,"
+							+ " but this server does not seem to be running Vault.");
 				}
 			}
 
@@ -150,12 +165,12 @@ public class RPGChatPlugin extends JavaPlugin {
 		Location senderLoc = sender.getLocation();
 		IniSection localSection = pluginConfig.getSection("Local");
 		String format = localSection.getAsString("message_format", "&4A problem occured. Check your RPGChat config.");
-		String prefix = localSection.getAsString("prefix", "&4A problem occured. Check your RPGChat config.");
+		String chatPrefix = localSection.getAsString("prefix", "&4A problem occured. Check your RPGChat config.");
 		boolean autoPeriod = localSection.getAsBoolean("auto_period", true);
 
 		String actualMessage = ChatColor.translateAlternateColorCodes('&', format);
 
-		actualMessage = actualMessage.replace("%prefix%", ChatColor.translateAlternateColorCodes('&', prefix));
+		actualMessage = actualMessage.replace("%chatprefix%", ChatColor.translateAlternateColorCodes('&', chatPrefix));
 		actualMessage = actualMessage.replace("%player%", sender.getName());
 		actualMessage = actualMessage.replace("%equals%", "=");
 		actualMessage = actualMessage.replace("%level%", String.valueOf(sender.getLevel()));
@@ -164,6 +179,22 @@ public class RPGChatPlugin extends JavaPlugin {
 			String clazz = RolecraftIntegration.getClass(sender);
 
 			actualMessage = actualMessage.replace("%class%", clazz);
+		}
+
+		if (isVaultIntegrationEnabled) {
+			String prefix = VaultIntegration.getChat().getPlayerPrefix(sender);
+			String suffix = VaultIntegration.getChat().getPlayerSuffix(sender);
+
+			if (prefix == null) {
+				prefix = "";
+			}
+
+			if (suffix == null) {
+				suffix = "";
+			}
+
+			actualMessage = actualMessage.replace("%prefix%", prefix);
+			actualMessage = actualMessage.replace("%suffix%", suffix);
 		}
 
 		if (autoPeriod) {
@@ -201,12 +232,12 @@ public class RPGChatPlugin extends JavaPlugin {
 	public void broadcastGlobalMessage(Player sender, String message) {
 		IniSection globalSection = pluginConfig.getSection("Global");
 		String format = globalSection.getAsString("message_format", "&4A problem occured. Check your RPGChat config.");
-		String prefix = globalSection.getAsString("prefix", "&4A problem occured. Check your RPGChat config.");
+		String chatPrefix = globalSection.getAsString("prefix", "&4A problem occured. Check your RPGChat config.");
 		boolean autoPeriod = globalSection.getAsBoolean("auto_period", true);
 
 		String actualMessage = ChatColor.translateAlternateColorCodes('&', format);
 
-		actualMessage = actualMessage.replace("%prefix%", ChatColor.translateAlternateColorCodes('&', prefix));
+		actualMessage = actualMessage.replace("%chatprefix%", ChatColor.translateAlternateColorCodes('&', chatPrefix));
 		actualMessage = actualMessage.replace("%player%", sender.getName());
 		actualMessage = actualMessage.replace("%equals%", "=");
 		actualMessage = actualMessage.replace("%level%", String.valueOf(sender.getLevel()));
@@ -215,6 +246,22 @@ public class RPGChatPlugin extends JavaPlugin {
 			String clazz = RolecraftIntegration.getClass(sender);
 
 			actualMessage = actualMessage.replace("%class%", clazz);
+		}
+		
+		if (isVaultIntegrationEnabled) {
+			String prefix = VaultIntegration.getChat().getPlayerPrefix(sender);
+			String suffix = VaultIntegration.getChat().getPlayerSuffix(sender);
+
+			if (prefix == null) {
+				prefix = "";
+			}
+
+			if (suffix == null) {
+				suffix = "";
+			}
+
+			actualMessage = actualMessage.replace("%prefix%", prefix);
+			actualMessage = actualMessage.replace("%suffix%", suffix);
 		}
 
 		if (autoPeriod) {
